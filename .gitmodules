@@ -1,0 +1,3 @@
+[submodule "PiaMoment/ExtendedConsole"]
+	path = PiaMoment/ExtendedConsole
+	url = https://github.com/VastraKai/ExtendedConsole
