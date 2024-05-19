@@ -17,8 +17,8 @@ class Program
     {
         return ValidAsns.Any(asn.Contains);
     }
-    
-    static void Main()
+
+    public static void Main()
     {
         Console.Config.SetupConsole();
 
@@ -34,11 +34,17 @@ class Program
             var asnOrg = IpApi.GetCurrentAsnOrg();
             if (asnOrg == null)
             {
-                Console.Log.WriteLine("Main", "Failed to get ASN, retrying...");
+                Console.Log.WriteLine("Main", "Failed to get ASN, retrying...", LogLevel.Error);
                 Thread.Sleep(500);
                 goto lol;
             }
-            Console.Log.WriteLine("Main", $"Current ASN: {asnOrg}");
+
+            Console.Log.WriteLine("Main", $"Current ASN: &v{asnOrg}", LogLevel.Debug);
+            if (!IsAsnValid(asnOrg))
+            {
+                Console.Log.WriteLine("Main", "&cInvalid ASN, rerolling...", LogLevel.Warning);
+                continue;
+            }
             lastAsn = asnOrg ?? "";
         }
     
