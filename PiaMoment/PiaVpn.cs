@@ -48,6 +48,13 @@ public static class PiaVpn
     {
         // C:\Program Files\Private Internet Access\piactl.exe
         ExecuteCtlCommand("disconnect");
+        Console.Log.WriteLine("PIA", "Disconnecting from VPN...");
+        
+        while (GetStatus() != "Disconnected")
+        {
+            Thread.Sleep(200);
+        }
+        
         Console.Log.WriteLine("PIA", "Disconnected from VPN");
     }
     
