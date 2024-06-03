@@ -27,7 +27,7 @@ jobs:
     - name: Test
       run: dotnet test --no-build --verbosity normal
     - name: Publish
-      run: dotnet publish PiaMoment.csproj -o build\ -c Release -p:PublishTrimmed=true -p:PublishSingleFile=true -p:SelfContained=true -p:PublishReadyToRun=true -p:IncludeNativeLibrariesForSelfExtract=true
+      run: dotnet publish PiaMoment\PiaMoment.csproj -o build\ -c Release -p:PublishTrimmed=true -p:PublishSingleFile=true -p:SelfContained=true -p:PublishReadyToRun=true -p:IncludeNativeLibrariesForSelfExtract=true
     - name: Upload build artifacts
       uses: actions/upload-artifact@v3
       with:
