@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 
 namespace PiaMoment;
 
@@ -29,33 +30,47 @@ public static class PiaVpn
         return output;
     }
     
-    public static void Connect()
+    public static void Connect(bool silent = false)
     {
         // C:\Program Files\Private Internet Access\piactl.exe
         ExecuteCtlCommand("connect");
         
-        Console.Log.WriteLine("PIA", "Connecting to VPN...");
+        if (!silent) Console.Log.WriteLine("PIA", "Connecting to VPN...");
         
         while (GetStatus() != "Connected")
         {
             Thread.Sleep(200);
         }
         
-        Console.Log.WriteLine("PIA", "Connected to VPN");
+        if (!silent) Console.Log.WriteLine("PIA", "Connected to VPN");
     }
     
-    public static void Disconnect()
+    public static string[] GetRegions()
+    {
+        // C:\Program Files\Private Internet Access\piactl.exe
+        string? output = ExecuteCtlCommand("get regions");
+        string[]? regions = output?.Split("\n");
+        // Remove the auto region
+        regions = regions?.Where(region => !region.Contains("Auto")).ToArray();
+        // remove any non alphanumeric characters excluding - and \n
+        regions = regions?.Select(region => Regex.Replace(region, "[^a-zA-Z0-9-\\n]", "")).ToArray();
+        // Remove any empty strings
+        regions = regions?.Where(region => region != "").ToArray();
+        return regions ?? [];
+    }
+    
+    public static void Disconnect(bool silent = false)
     {
         // C:\Program Files\Private Internet Access\piactl.exe
         ExecuteCtlCommand("disconnect");
-        Console.Log.WriteLine("PIA", "Disconnecting from VPN...");
+        if (!silent) Console.Log.WriteLine("PIA", "Disconnecting from VPN...");
         
         while (GetStatus() != "Disconnected")
         {
             Thread.Sleep(200);
         }
         
-        Console.Log.WriteLine("PIA", "Disconnected from VPN");
+        if (!silent) Console.Log.WriteLine("PIA", "Disconnected from VPN");
     }
     
     public static string GetStatus()
