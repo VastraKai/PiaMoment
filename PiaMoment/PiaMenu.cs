@@ -8,6 +8,7 @@ public static class PiaMenu
     public static void MainMenu()
     {
         var menu = new Menu($"{Console.Log.ColorB}[Main Menu]{Console.Log.R}", "");
+        menu.AddLabel("Select an option...");
         menu.AddMenuItem("showCurrentAsn", "Show information", () =>
         {
             if (!PiaVpn.CheckClientRunning()) return;
@@ -37,42 +38,42 @@ public static class PiaMenu
         });
         menu.AddMenuItem("setRegion", "Set VPN Region...", RegionMenu);
         menu.AddMenuItem("troubleshootingOptions", "Troubleshooting Options...", TroubleshootingMenu);
-        menu.AddMenuItem("exit", "Exit", () =>
-        {
-            Process.GetCurrentProcess().Kill();
-        });
+        menu.AddMenuItem("exit", "Exit", () => menu.ExitMenu());
         
         menu.ShowMenu();
     }
+    
+    public static List<string> bypassingRegions = new List<string>
+    {
+        "us-east",
+        "us-washington-dc",
+        "us-new-york",
+        "us-chicago",
+        "us-atlanta",
+        "us-denver",
+        "us-texas",
+        "us-florida",
+        "us-seattle",
+        "us-west-streaming-optimized",
+        "us-silicon-valley",
+        "us-california",
+        "us-las-vegas",
+        "ca-toronto",
+        "ca-vancouver",
+        "uk-london",
+        "uk-manchester",
+        "france",
+        "belgium",
+        "de-germany-streaming-optimized",
+        "de-berlin"
+    };
 
     public static void RegionMenu()
     {
         var menu = new Menu($"{Console.Log.ColorB}[Select a Region]{Console.Log.R}", "");
-         
-        List<string> bypassingRegions = new List<string>
-        {
-            "us-east",
-            "us-washington-dc",
-            "us-new-york",
-            "us-chicago",
-            "us-atlanta",
-            "us-denver",
-            "us-texas",
-            "us-florida",
-            "us-seattle",
-            "us-west-streaming-optimized",
-            "us-silicon-valley",
-            "us-california",
-            "us-las-vegas",
-            "ca-toronto",
-            "ca-vancouver",
-            "uk-london",
-            "uk-manchester",
-            "france",
-            "belgium",
-            "de-germany-streaming-optimized",
-            "de-berlin"
-        };
+        
+        menu.AddLabel("Select a region to use...");
+        menu.AddLabel("Most of the regions here should work with Minecraft servers.");
         
         foreach (var region in bypassingRegions)
         {
@@ -82,15 +83,17 @@ public static class PiaMenu
                 if (PiaVpn.GetStatus() == "Connected")
                 {
                     Console.Log.WriteLine("Main", "This action will disconnect you from VPN!");
-                    if (!Console.Log.Confirm("Main", "Are you sure you want to continue? ")) return;
+                    if (!Console.Log.Confirm("Main", "Are you sure you want to continue?")) return;
                 }
 
                 PiaVpn.Disconnect(true);
                 PiaVpn.ExecuteCtlCommand($"set region {region}");
                 Console.Log.WriteLine("Main", $"&aRegion has been set to &v{region}&a.");
                 Console.WaitForEnter("Press enter to continue...");
+                menu.ExitMenu();
             }));
         }
+        menu.AddMenuItem("goBack", "Go back...", menu.ExitMenu);
         
         menu.ShowMenu();
     }
@@ -98,6 +101,7 @@ public static class PiaMenu
     public static void TroubleshootingMenu()
     {
         var menu = new Menu($"{Console.Log.ColorB}[Troubleshooting Options]{Console.Log.R}", "");
+        menu.AddLabel("Select an option...");
         menu.AddMenuItem("checkClientRunning", "Check if PIA client is running", new Action(() =>
         {
             Console.Log.WriteLine("Main", $"&bThe PIA client is currently {(PiaVpn.IsClientRunning() ? "&arunning" : "&cnot running")}&b.");
@@ -118,6 +122,7 @@ public static class PiaMenu
             PiaVpn.TerminateClient();
             Console.WaitForEnter("Press enter to continue...");
         }));
+        menu.AddMenuItem("goBack", "Go back...", menu.ExitMenu);
         
         menu.ShowMenu();
     }

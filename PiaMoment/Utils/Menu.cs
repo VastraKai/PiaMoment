@@ -13,6 +13,8 @@ public class Menu
     public string ConfigFile { get; set; }
     public List<MenuItem> MenuItems { get; set; }
     
+    private bool _exitMenu = false;
+    
     public Menu(string title = "Menu", string configFile = "config.json")
     {
         Title = title;
@@ -44,6 +46,11 @@ public class Menu
         MenuItems.Add(new FloatMenuItem(name, friendlyName, value));
     }
     
+    public void AddLabel(string text)
+    {
+        MenuItems.Add(new LabelMenuItem("", text));
+    }
+    
     public MenuItem GetMenuItem(int index)
     {
         return MenuItems[index];
@@ -58,14 +65,19 @@ public class Menu
     {
         // close the menu
         Console.SwitchToMainBuffer();
+        _exitMenu = true;
     }
 
     public void ShowMenu()
     {
         int selection = 0;
         
+        while (MenuItems.Count > selection && MenuItems[selection] is LabelMenuItem)
+        {
+            selection++;
+        }
         
-        this.ShowMenuInternal();
+        this.ShowMenuInternal(selection);
 
         while (true)
         {
@@ -75,16 +87,41 @@ public class Menu
                 if (key.Key == ConsoleKey.UpArrow)
                 {
                     selection--;
+                    
                     if (selection < 0)
                     {
                         selection = this.MenuItems.Count - 1;
                     }
+                    
+                    while (MenuItems.Count > selection && selection > -1 && MenuItems[selection] is LabelMenuItem)
+                    {
+                        // i know this is kinda crude and might cause an infinite loop 
+                        // but who the balls uses all labelmenuitems
+                        selection--;
+                    }
+                    
+                    if (selection < 0)
+                    {
+                        selection = this.MenuItems.Count - 1;
+                    }
+                    
 
                     this.ShowMenuInternal(selection);
                 }
                 else if (key.Key == ConsoleKey.DownArrow)
                 {
                     selection++;
+                    if (selection >= this.MenuItems.Count)
+                    {
+                        selection = 0;
+                    }
+                    
+                    // If the selection is a labelmenuitem, skip it
+                    while (MenuItems.Count > selection && MenuItems[selection] is LabelMenuItem)
+                    {
+                        selection++;
+                    }
+                    
                     if (selection >= this.MenuItems.Count)
                     {
                         selection = 0;
@@ -113,7 +150,13 @@ public class Menu
                 }
             } catch (Exception e)
             {
-                Console.WriteLine(e);
+                Console.WriteLine("selection: " + selection + " menuitems count: " + MenuItems.Count + " " + e);
+            }
+            
+            if (_exitMenu)
+            {
+                _exitMenu = false;
+                break;
             }
         }
     }
@@ -131,18 +174,13 @@ public class Menu
     private void ShowMenuInternal(int selection = 0)
     {
         // Example menu:
-        // [0] BoolSetting1
-        // [1] BoolSetting2 // this one is selected so the [1] is colored differently
-        // [2] IntSetting1: (1)
-        // [3] IntSetting2: (2)
-        // [4] FloatSetting1: {1.0}
-        // [5] FloatSetting2: {2.0}
 
         // Clear the console
         Console.SwitchToAlternativeBuffer();
         Console.Clear();
 
-        
+        // Prevent the default selection from being a labelmenuitem
+
         // Print the title
         Console.WriteLine(Title);
         string selectionColor = Console.Log.Color9; // Color of the selected item
@@ -152,6 +190,7 @@ public class Menu
         
 
         // Print the menu items
+        int displayedI = 0;
         for (int i = 0; i < MenuItems.Count; i++)
         {
             MenuItem item = MenuItems[i];
@@ -159,57 +198,64 @@ public class Menu
             {
                 if (i == selection)
                 {
-                    Console.WriteLine($"[{i}] {selectionColor}{item.FriendlyName}{defaultColor}: {(boolItem.Value ? enabledColor : disabledColor)}{boolItem.Value}{defaultColor}");
+                    Console.WriteLine($"[{displayedI}] {selectionColor}{item.FriendlyName}{defaultColor}: {(boolItem.Value ? enabledColor : disabledColor)}{boolItem.Value}{defaultColor}");
                 }
                 else
                 {
-                    Console.WriteLine($"[{i}] {item.FriendlyName}: {(boolItem.Value ? enabledColor : disabledColor)}{boolItem.Value}{defaultColor}");
+                    Console.WriteLine($"[{displayedI}] {item.FriendlyName}: {(boolItem.Value ? enabledColor : disabledColor)}{boolItem.Value}{defaultColor}");
                 }
             }
             else if (item is IntMenuItem intItem)
             {
                 if (i == selection)
                 {
-                    Console.WriteLine($"[{i}] {selectionColor}{item.FriendlyName}{defaultColor}: {intItem.Value}");
+                    Console.WriteLine($"[{displayedI}] {selectionColor}{item.FriendlyName}{defaultColor}: {intItem.Value}");
                 }
                 else
                 {
-                    Console.WriteLine($"[{i}] {item.FriendlyName}: {intItem.Value}");
+                    Console.WriteLine($"[{displayedI}] {item.FriendlyName}: {intItem.Value}");
                 }
             }
             else if (item is FloatMenuItem floatItem)
             {
                 if (i == selection)
                 {
-                    Console.WriteLine($"[{i}] {selectionColor}{item.FriendlyName}{defaultColor}: {floatItem.Value}");
+                    Console.WriteLine($"[{displayedI}] {selectionColor}{item.FriendlyName}{defaultColor}: {floatItem.Value}");
                 }
                 else
                 {
-                    Console.WriteLine($"[{i}] {item.FriendlyName}: {floatItem.Value}");
+                    Console.WriteLine($"[{displayedI}] {item.FriendlyName}: {floatItem.Value}");
                 }
             }
             else if (item is ActionMenuItem actionItem)
             {
                 if (i == selection)
                 {
-                    Console.WriteLine($"[{i}] {selectionColor}{item.FriendlyName}{defaultColor}");
+                    Console.WriteLine($"[{displayedI}] {selectionColor}{item.FriendlyName}{defaultColor}");
                 }
                 else
                 {
-                    Console.WriteLine($"[{i}] {item.FriendlyName}");
+                    Console.WriteLine($"[{displayedI}] {item.FriendlyName}");
                 }
+            }
+            else if (item is LabelMenuItem) // LabelMenuItem is a MenuItem that only displays text
+            {
+                Console.WriteLine(item.FriendlyName);
+                displayedI--;
             }
             else
             {
                 if (i == selection)
                 {
-                    Console.WriteLine($"[{i}] {selectionColor}{item.FriendlyName}{defaultColor}");
+                    Console.WriteLine($"[{displayedI}] {selectionColor}{item.FriendlyName}{defaultColor}");
                 }
                 else
                 {
-                    Console.WriteLine($"[{i}] {item.FriendlyName}");
+                    Console.WriteLine($"[{displayedI}] {item.FriendlyName}");
                 }
             }
+            
+            displayedI++;
         }
         
         // Go to the bottom of the console
