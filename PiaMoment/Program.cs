@@ -23,15 +23,18 @@ public static class Program
     public static void Main(string[] args)
     {
         Console.Config.SetupConsole();
-        // increase the window size y by 30
         string currentTitle = Console.Title;
         var windowWidth = Console.WindowWidth;
         var windowHeight = Console.WindowHeight;
-        Console.SetWindowSize(120, 40);
+        Console.CancelKeyPress += (sender, eventArgs) =>
+        {
+            Console.SwitchToMainBuffer();
+        };
         Console.Title = "PiaMoment";
         PiaMenu.MainMenu();
         Console.Title = currentTitle;
         Console.SetWindowSize(windowWidth, windowHeight);
+        Console.SwitchToMainBuffer();
     }
     
     public static void RerollUntilValidAsn()

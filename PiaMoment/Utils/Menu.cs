@@ -177,7 +177,8 @@ public class Menu
 
         // Clear the console
         Console.SwitchToAlternativeBuffer();
-        Console.Clear();
+        Console.Write($"{Console.Esc}[2J{Console.Esc}[H{Console.Esc}[3J{Console.Esc}[H");
+
 
         // Prevent the default selection from being a labelmenuitem
 
